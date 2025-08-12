@@ -19,6 +19,12 @@ let coins = [];
 let score = 0;
 let speed = 4;
 let keys = {};
+let frame = 0;
+
+// Sound effects
+const jumpSound = new Audio('assets/jump.mp3');
+const coinSound = new Audio('assets/coin.mp3');
+const crashSound = new Audio('assets/crash.mp3');
 
 document.addEventListener('keydown', e => keys[e.code] = true);
 document.addEventListener('keyup', e => keys[e.code] = false);
@@ -36,7 +42,7 @@ function spawnObstacle() {
 function spawnCoin() {
   coins.push({
     x: canvas.width,
-    y: groundY - 60,
+    y: groundY - 60 - Math.random() * 40,
     radius: 10,
     color: 'gold'
   });
@@ -76,6 +82,7 @@ function updatePlayer() {
   if (keys['Space'] && player.grounded) {
     player.dy = player.jumpPower;
     player.grounded = false;
+    jumpSound.play();
   }
 }
 
@@ -97,6 +104,7 @@ function checkCollisions() {
       player.y < ob.y + ob.height &&
       player.y + player.height > ob.y
     ) {
+      crashSound.play();
       alert(`Game Over! Score: ${score}`);
       resetGame();
     }
@@ -109,6 +117,7 @@ function checkCollisions() {
 
     if (distance < c.radius + player.width / 2) {
       score += 10;
+      coinSound.play();
       coins.splice(i, 1);
     }
   });
@@ -128,9 +137,8 @@ function resetGame() {
   obstacles = [];
   coins = [];
   speed = 4;
+  frame = 0;
 }
-
-let frame = 0;
 
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
