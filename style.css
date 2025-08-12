@@ -1,0 +1,14 @@
+body {
+  margin: 0;
+  background-color: #222;
+  color: white;
+  text-align: center;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+canvas {
+  display: block;
+  margin: 0 auto;
+  background: linear-gradient(to top, #444, #888);
+  border: 2px solid white;
+}
