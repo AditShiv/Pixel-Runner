@@ -1,5 +1,7 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const usernameInput = document.getElementById('username');
+const leaderboardList = document.getElementById('leaderboard-list');
 
 let player = {
   x: 50,
@@ -20,6 +22,8 @@ let score = 0;
 let speed = 4;
 let keys = {};
 let frame = 0;
+let username = '';
+let gameRunning = false;
 
 // Sound effects
 const jumpSound = new Audio('assets/jump.mp3');
@@ -28,6 +32,17 @@ const crashSound = new Audio('assets/crash.mp3');
 
 document.addEventListener('keydown', e => keys[e.code] = true);
 document.addEventListener('keyup', e => keys[e.code] = false);
+
+function startGame() {
+  username = usernameInput.value.trim();
+  if (!username) {
+    alert('Please enter your name!');
+    return;
+  }
+  resetGame();
+  gameRunning = true;
+  gameLoop();
+}
 
 function spawnObstacle() {
   obstacles.push({
@@ -105,8 +120,9 @@ function checkCollisions() {
       player.y + player.height > ob.y
     ) {
       crashSound.play();
-      alert(`Game Over! Score: ${score}`);
-      resetGame();
+      saveScore();
+      alert(`Game Over, ${username}! Score: ${score}`);
+      gameRunning = false;
     }
   });
 
@@ -140,7 +156,32 @@ function resetGame() {
   frame = 0;
 }
 
+function saveScore() {
+  let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+  let existing = leaderboard.find(entry => entry.name === username);
+  if (!existing || score > existing.score) {
+    leaderboard = leaderboard.filter(entry => entry.name !== username);
+    leaderboard.push({ name: username, score });
+  }
+  leaderboard.sort((a, b) => b.score - a.score);
+  leaderboard = leaderboard.slice(0, 5);
+  localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+  updateLeaderboard();
+}
+
+function updateLeaderboard() {
+  let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+  leaderboardList.innerHTML = '';
+  leaderboard.forEach(entry => {
+    let li = document.createElement('li');
+    li.textContent = `${entry.name}: ${entry.score}`;
+    leaderboardList.appendChild(li);
+  });
+}
+
 function gameLoop() {
+  if (!gameRunning) return;
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   drawPlayer();
@@ -161,4 +202,4 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-gameLoop();
+updateLeaderboard();
